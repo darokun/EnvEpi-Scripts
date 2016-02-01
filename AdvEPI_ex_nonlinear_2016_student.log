@@ -1,0 +1,750 @@
+1                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+NOTE: Unable to open SASUSER.REGSTRY. WORK.REGSTRY will be opened instead.
+NOTE: All registry changes will be lost at the end of the session.
+
+WARNING: Unable to copy SASUSER registry to WORK registry. Because of this, you will not see registry customizations during this 
+         session.
+NOTE: Copyright (c) 2002-2008 by SAS Institute Inc., Cary, NC, USA. 
+NOTE: SAS (r) Proprietary Software 9.2 (TS1M0) 
+      Licensed to IBE MUENCHEN T U R, Site 0050207726.
+NOTE: This session is executing on the Linux 3.1.10-1.9-desktop platform.
+
+
+
+You are running SAS 9. Some SAS 8 files will be automatically converted 
+by the V9 engine; others are incompatible.  Please see 
+http://support.sas.com/rnd/migration/planning/platform/64bit.html
+
+PROC MIGRATE will preserve current SAS file attributes and is 
+recommended for converting all your SAS libraries from any 
+SAS 8 release to SAS 9.  For details and examples, please see
+http://support.sas.com/rnd/migration/index.html
+
+
+
+
+
+NOTE: SAS initialization used:
+      real time           0.05 seconds
+      cpu time            0.02 seconds
+      
+1          **********************************************************************
+2          * Project:      Advanced Epi 2015
+3          * Program:      AdvEPI_ex_nonlinear_2015_student.sas
+4          * Created:      01.02.2016
+5          * Data set(s):  nonlinear
+6          **********************************************************************;
+7          
+8          /***************************************************************************/
+9          /* Start of exercise */
+10         /***************************************************************************/
+11         *libname class 'N:\INSTITUT\Vorlesungen\2015\Advanced EPI I\Day08_Nonlinear\Day08_exercise';
+12         libname class 'D:\Vorlesung_2015\Nonlinear\2015\Exercise';
+NOTE: Library CLASS does not exist.
+12       !                                                           
+13         
+14         /*1a: Create new class dataset*/
+15         data nonlinear;	
+16         set class.nonlinear;	
+ERROR: File CLASS.NONLINEAR.DATA does not exist.
+17         run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: SAS set option OBS=0 and will continue to check statements. This may cause NOTE: No observations in data set.
+WARNING: The data set WORK.NONLINEAR may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+2                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+
+17       !     
+18         
+19         /*1b: Look at the data: What is the number of observations? */
+20         
+21         
+22         
+23         
+24         
+25         /*2: Scatterplots for atalter alhdlaz atsysmm atdiamm atbmi*/
+26         proc gplot data=nonlinear;
+27         plot atdiamm*atsysmm;
+ERROR: Variable ATDIAMM not found.
+ERROR: Variable ATSYSMM not found.
+28         run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+28       !     
+29         quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.02 seconds
+      cpu time            0.01 seconds
+      
+29       !      
+30         
+31         
+32         
+33         
+34         
+35         
+36         
+37         /*2b: Scatterplots - alternatives*/
+38         ods graphics on;
+
+
+39         proc kde data=nonlinear;
+40           bivar atalter atsysmm / /*bwm=.5*/ plots=contour;
+ERROR: Variable ATALTER not found.
+ERROR: Variable ATSYSMM not found.
+41         run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE KDE used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+41       !     
+42         
+
+
+43         proc kde data=nonlinear;
+44           bivar atalter atsysmm / /*bwm=.5*/ plots=surface;
+ERROR: Variable ATALTER not found.
+ERROR: Variable ATSYSMM not found.
+45         run;
+
+3                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE KDE used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+45       !     
+46         
+47         ods graphics off;
+48         
+49         
+50         /*3a: Linear regression for HDL-cholesterol and BMI */
+51         
+
+
+52         proc genmod data=nonlinear;
+53         model alhdlaz=atbmi / dist=normal; * dist=normal => normal distribution;
+ERROR: Variable ALHDLAZ not found.
+54         output out=b p=yhat;  /*out= defines the output data set, p (predicted) defines the variable name for the predicted
+54       ! values;*/
+55         run;
+
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.B may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+NOTE: PROCEDURE GENMOD used (Total process time):
+      real time           0.01 seconds
+      cpu time            0.01 seconds
+      
+55       !     
+56         
+57         /*Alternative modelling*/
+
+
+58         proc reg data=nonlinear;
+59         model alhdlaz=atbmi;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+60         output out=b p=yhat;  
+61         run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+NOTE: PROCEDURE REG used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.B may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+WARNING: Data set WORK.B was not replaced because this step was stopped.
+61       !     
+62         quit;
+63         
+64         
+65         /* 3b: Plot a scatterplot for HDL-cholesterol and BMI and add regression line */
+66         
+67         symbol1 color=black			/* symbol is a global statement that defines the */
+68                 interpol=none		/* characteristics of symbols that display the data plotted */
+69         		value=dot;			/* by proc gplot */
+70         symbol2 color=blue			/* value speficies a plot symbol for the data points */
+4                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+71                 interpol=join;		/* color specifies the color for the symbols*/
+72         							/* interpol specifies whether the symbols are interpolated or not */
+73         
+
+
+74         proc gplot data=b;
+75         plot (alhdlaz yhat)*atbmi/ overlay; 	/* overlay places all the plots that are generated by */
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable YHAT not found.
+ERROR: Variable ATBMI not found.
+76         run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+76       !     										/* the PLOT statement on one set of axes */
+77         quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+77       !      
+78         
+79         symbol1;	/* resets symbol1 to default SAS characteristics  */
+80         symbol2;
+81         
+82         
+83         
+84         /*4: Polynomial regression for HDL-cholesterol and BMI */
+85         
+86         *4a: Create squared variable bmi2 and perform regression with quadratic polynomial;
+
+
+87         data nonlinear;
+88         set nonlinear;
+89         atbmi2=atbmi*atbmi;
+90         run;
+
+NOTE: The data set WORK.NONLINEAR has 0 observations and 2 variables.
+WARNING: Data set WORK.NONLINEAR was not replaced because this step was stopped.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+90       !     
+91         
+92         proc genmod data=nonlinear;
+93         model alhdlaz=atbmi atbmi2 / dist=normal;
+ERROR: Variable ALHDLAZ not found.
+94         output out=b p=yhat;
+95         run;
+
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.B may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+WARNING: Data set WORK.B was not replaced because this step was stopped.
+NOTE: PROCEDURE GENMOD used (Total process time):
+5                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+      real time           0.01 seconds
+      cpu time            0.00 seconds
+      
+95       !     
+96         
+
+
+97         proc reg data=nonlinear;
+98         model alhdlaz=atbmi atbmi2 ;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+ERROR: Variable ATBMI2 not found.
+99         output out=b p=yhat;
+100        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+NOTE: PROCEDURE REG used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.B may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+WARNING: Data set WORK.B was not replaced because this step was stopped.
+100      !     
+101        quit;
+102        
+103        *Plot the quadratic polynomial; 
+104        symbol1 color=black			
+105                interpol=none		
+106        		value=dot;		
+107        symbol2 color=blue
+108        		interpol=splines;			/* spline specifies that the interpolation for the plot line use a spline routine*/ 			
+
+
+109        proc gplot data=b;
+110        plot (alhdlaz yhat)*atbmi/ overlay;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable YHAT not found.
+ERROR: Variable ATBMI not found.
+111        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+111      !     
+112        quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+112      !      
+113        
+114        
+115        *4c: perform regression with different degrees for the polynomial;
+116        /*First add polynomial terms to your dataset, e.g. for degree=3  */
+
+
+117        data nonlinear;
+6                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+118        set nonlinear;
+119        atbmi3=atbmi*atbmi*atbmi; /* easier: atbmi**3 */
+120        run;
+
+NOTE: The data set WORK.NONLINEAR has 0 observations and 2 variables.
+WARNING: Data set WORK.NONLINEAR was not replaced because this step was stopped.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+120      !     
+121        
+122        /*degree=3*/
+123        
+124        
+125        
+126        
+127        /*other degrees*/
+128        
+129        
+130        
+131        
+132        
+133        
+134        
+135        /*5a: Perform piecewise linear regression model for alhdlaz and bmi*/
+136        
+137        data nonlinear;
+138        set nonlinear;
+139        if atbmi<30 then bmic=0; else bmic=1;
+140        bmidiff=(atbmi-30)*bmic;
+141        run;
+
+NOTE: The data set WORK.NONLINEAR has 0 observations and 3 variables.
+WARNING: Data set WORK.NONLINEAR was not replaced because this step was stopped.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+141      !     
+142        
+143        proc genmod data=nonlinear;
+144        model alhdlaz=atbmi bmidiff/ dist=normal;
+ERROR: Variable ALHDLAZ not found.
+145        output out=b p=yhat;
+146        run;
+
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.B may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+WARNING: Data set WORK.B was not replaced because this step was stopped.
+NOTE: PROCEDURE GENMOD used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+146      !     
+7                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+147        quit;
+148        
+149        /*5b: Plot results*/
+150        symbol1 color=black			
+151                interpol=none		
+152        		value=dot;		
+153        symbol2 color=blue
+154        		interpol=splines width=2;
+
+
+155        proc gplot data=b;
+156        plot alhdlaz*atbmi yhat*atbmi/ overlay;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+ERROR: Variable YHAT not found.
+ERROR: Variable ATBMI not found.
+157        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+157      !     
+158        quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+158      !      
+159        
+160        
+161        
+162        /*6a: Regression with polynomial splines B-spline*/
+163        
+
+
+164        proc transreg data = nonlinear design;
+165        	model identity(alhdlaz) = bspline(atbmi/degree=3  knots=30)/ SS2;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+166        	output out=splineout;
+167        	run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SPLINEOUT may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+NOTE: PROCEDURE TRANSREG used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+167      !      
+168        
+169        /*6b: Plot basis functions */
+
+
+170        proc sort data=splineout; by atbmi; run;
+ERROR: Variable ATBMI not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+8                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+170      !                                          /*Needs to be sorted by x if dots should be joined - try out without the sorting
+170      !  and withdots instead of join*/
+171        
+172        goptions reset=all;
+173        goptions colors=(darkred orange darkgreen black blue) ;
+174        symbol interpol=join width=2 repeat=5	;		
+175        
+
+
+176        proc gplot data=splineout;
+177        plot (Intercept -- atbmi_4)*atbmi/ overlay;
+ERROR: Variable INTERCEPT not found.
+ERROR: Variable ATBMI not found.
+178        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+178      !     
+179        quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+179      !      
+180        
+181        
+182        /*6c: Add weighted basis functions to data set*/
+
+
+183        data splineout;
+184        		set splineout;
+185        		t0 = 71.8235080*atbmi_0;
+186        		t1 = 65.9769697*atbmi_1;
+187        		t2 = 32.0049391*atbmi_2;
+188        		t3 = 59.1401642*atbmi_3;
+189        		t4 = 35.7445817*atbmi_4;
+190        		run;
+
+NOTE: The data set WORK.SPLINEOUT has 0 observations and 10 variables.
+WARNING: Data set WORK.SPLINEOUT was not replaced because this step was stopped.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+190      !       
+191        
+192        
+193        /*6d: Plot weighted basis functions*/
+194        
+195        
+196        
+197        
+198        
+9                                                          The SAS System                             13:02 Monday, February 1, 2016
+
+199        
+200        /*6e: Calculate prediction by summing up the weighted basis functions*/
+201        
+202        
+203        
+204        
+205        
+206        
+207        
+208        
+209        
+210        /*Alternative and much easier way*/
+211        proc sort data= nonlinear; by atbmi ; run;
+ERROR: Variable ATBMI not found.
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+211      !                                           
+212        
+
+
+213        proc transreg data = nonlinear design;
+214        	model identity(alhdlaz) = bspline(atbmi/degree=3  knots=30)/ SS2;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+215        	output out=splineout PREDICTED;  /*Specification of PREDICTED adds the predicted values to the output data set ->
+215      ! default name is Py -> here Palhdlaz */
+216        	run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.SPLINEOUT may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+WARNING: Data set WORK.SPLINEOUT was not replaced because this step was stopped.
+NOTE: PROCEDURE TRANSREG used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+216      !      
+217        
+218        
+219        
+220        symbol1 color=black			
+221                interpol=none		
+222        		value=dot;		
+223        symbol2 color=blue
+224        		interpol=splines;
+225        
+
+
+226        proc gplot data=splineout;
+227        plot (alhdlaz Palhdlaz)*atbmi/ overlay;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable PALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+228        run;
+
+10                                                         The SAS System                             13:02 Monday, February 1, 2016
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+228      !     
+229        quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+229      !      
+230        
+231        
+232        
+233        /*7: Bin smoother for BMI */
+234        
+235        /*7: 	Define categories according to WHO definition*/
+236        
+
+
+237        data nonlinear;
+238        set nonlinear;
+239        if .< atbmi<25 then bmicat=22;
+240        if atbmi ge 25 and atbmi<30 then bmicat=27.5;
+241        if atbmi ge 30 then bmicat=33;
+242        if atbmi=.  then bmicat=10;
+243        run;
+
+NOTE: The data set WORK.NONLINEAR has 0 observations and 2 variables.
+WARNING: Data set WORK.NONLINEAR was not replaced because this step was stopped.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+
+243      !     
+244        
+245        /*Plot boxplots*/
+246        symbol1 color=black			
+247                interpol=none		
+248        		value=dot;
+249        symbol2 color=blue
+250        		interpol=BOX width=2;
+251        proc gplot data=nonlinear;
+252        plot alhdlaz*atbmi alhdlaz*bmicat/overlay href=25 30 LHREF=3; 
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable BMICAT not found.
+253        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+253      !     
+254        quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+11                                                         The SAS System                             13:02 Monday, February 1, 2016
+
+      
+254      !      
+255        
+256        
+257        /*7b:	Create bin means */
+
+
+258        proc sort data=nonlinear;
+259        by bmicat;
+ERROR: Variable BMICAT not found.
+260        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE SORT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+260      !     
+261        
+
+
+262        proc means data=nonlinear;
+263        by bmicat;
+ERROR: Variable BMICAT not found.
+264        var alhdlaz;
+ERROR: Variable ALHDLAZ not found.
+265        output out=b mean=m;
+266        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.B may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+WARNING: Data set WORK.B was not replaced because this step was stopped.
+NOTE: PROCEDURE MEANS used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+266      !     
+267        
+
+
+268        data nonlinear;
+269        set nonlinear;
+270        if bmicat=22 then binmean= 59.5391003;
+271        if bmicat=27.5 then binmean= 51.8375000;
+272        if bmicat=33 then binmean= 48.0125000;
+273        run;
+
+NOTE: The data set WORK.NONLINEAR has 0 observations and 2 variables.
+WARNING: Data set WORK.NONLINEAR was not replaced because this step was stopped.
+NOTE: DATA statement used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.01 seconds
+      
+
+273      !     
+274        
+275        
+276        symbol1 color=black			
+12                                                         The SAS System                             13:02 Monday, February 1, 2016
+
+277                interpol=none		
+278        		value=dot;
+279        symbol2 color=blue
+280        		interpol=stepcj 
+281        		value=star;
+282        proc gplot data=nonlinear;
+283        plot alhdlaz*atbmi binmean*bmicat/overlay href=25 30 LHREF=3;
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+ERROR: Variable BINMEAN not found.
+ERROR: Variable BMICAT not found.
+284        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+284      !     
+285        quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+285      !      
+286        
+287        
+288        
+289        
+290        
+291        /**************************************************************************************/
+292        /*BONUS EX -penalized bspline - default is DEGREE=3, 100 evenly spaced knots, three evenly spaced exterior knots on each
+292      ! side of the data.*/
+293        /**************************************************************************************/
+294        
+
+
+295        proc transreg data = nonlinear ; 
+296        model identity(alhdlaz) = pbspline(atbmi /degree=3 nknots=100 aic)/ SS2; 
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+297        output out=pb PREDICTED;
+298        run;
+
+NOTE: The SAS System stopped processing this step because of errors.
+WARNING: The data set WORK.PB may be incomplete.  When this step was stopped there were 0 observations and 0 variables.
+NOTE: PROCEDURE TRANSREG used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+298      !     
+299        
+300        symbol1 color=black			
+301                interpol=none		
+302        		value=dot;
+303        symbol2 color=blue
+304        		interpol=join width =2;
+305        
+
+
+13                                                         The SAS System                             13:02 Monday, February 1, 2016
+
+306        proc gplot data=pb;
+307        plot (alhdlaz Palhdlaz )*atbmi/ overlay; 	
+ERROR: Variable ALHDLAZ not found.
+ERROR: Variable PALHDLAZ not found.
+ERROR: Variable ATBMI not found.
+308        run;
+
+WARNING: RUN statement ignored due to previous errors. Submit QUIT; to terminate the procedure.
+308      !      quit;
+
+NOTE: The SAS System stopped processing this step because of errors.
+NOTE: PROCEDURE GPLOT used (Total process time):
+      real time           0.00 seconds
+      cpu time            0.00 seconds
+      
+308      !           
+309        
+310        /* However, fit is not very good in this example due to  boundary constraints of SAS defaults 
+311        -> check help files if and how you can change this */
+
+
+ERROR: Errors printed on pages 1,2,3,4,5,6,7,8,9,10,11,12,13.
+
+NOTE: SAS Institute Inc., SAS Campus Drive, Cary, NC USA 27513-2414
+NOTE: The SAS System used:
+      real time           0.36 seconds
+      cpu time            0.09 seconds
+      

@@ -1,8 +1,8 @@
-+ Non-lineal regression class
+* Non-lineal regression class
 
 * Slide 4
 * Read-in the data
-libname class ‘Path to folder where data set is located';
+libname class "/home/msc1426/Dokumente/EnvEpi-Scripts";
 data nonlinear;
 set class.nonlinear;
 run;

@@ -9,7 +9,7 @@
 /* Start of exercise */
 /***************************************************************************/
 *libname class 'N:\INSTITUT\Vorlesungen\2015\Advanced EPI I\Day08_Nonlinear\Day08_exercise';
-libname class 'D:\Vorlesung_2015\Nonlinear\2015\Exercise';
+libname class "/home/msc1426/Dokumente/EnvEpi-Scripts";
 
 /*1a: Create new class dataset*/
 data nonlinear;	
@@ -17,24 +17,27 @@ set class.nonlinear;
 run;
 
 /*1b: Look at the data: What is the number of observations? */
-
+There are 1200 observations
 
 
 
 
 /*2: Scatterplots for atalter alhdlaz atsysmm atdiamm atbmi*/
+
+* atsysmm and atdiamm (plot1);
 proc gplot data=nonlinear;
 plot atdiamm*atsysmm;
 run;
 quit;
 
-
-
-
-
-
+* alhdlaz and atbmi (plot2);
+proc gplot data=nonlinear;
+plot alhdlaz*atbmi;
+run;
+quit;
 
 /*2b: Scatterplots - alternatives*/
+* age and sbp (plots 31 and 32);
 ods graphics on;
 proc kde data=nonlinear;
   bivar atalter atsysmm / /*bwm=.5*/ plots=contour;
@@ -46,6 +49,18 @@ run;
 
 ods graphics off;
 
+* age and bmi (plots 41 and 42);
+ods graphics on;
+proc kde data=nonlinear;
+  bivar atalter atbmi / /*bwm=.5*/ plots=contour;
+run;
+
+proc kde data=nonlinear;
+  bivar atalter atbmi / /*bwm=.5*/ plots=surface;
+run;
+
+ods graphics off;
+
 
 /*3a: Linear regression for HDL-cholesterol and BMI */
 
@@ -53,6 +68,8 @@ proc genmod data=nonlinear;
 model alhdlaz=atbmi / dist=normal; * dist=normal => normal distribution;
 output out=b p=yhat;  /*out= defines the output data set, p (predicted) defines the variable name for the predicted values;*/
 run;
+* hdl = 81.2767 - 1.024*bmi;
+* both the intercept and beta1 are statistically significant (p<0.0001);
 
 /*Alternative modelling*/
 proc reg data=nonlinear;
@@ -93,7 +110,10 @@ proc genmod data=nonlinear;
 model alhdlaz=atbmi atbmi2 / dist=normal;
 output out=b p=yhat;
 run;
+* hdl = 132.8245 - 4.5676*bmi + 0.0594*bmi2;
+* all coefficients are statistically significant at p<0.0001;
 
+*or;
 proc reg data=nonlinear;
 model alhdlaz=atbmi atbmi2 ;
 output out=b p=yhat;
@@ -114,18 +134,69 @@ quit;
 
 *4c: perform regression with different degrees for the polynomial;
 /*First add polynomial terms to your dataset, e.g. for degree=3  */
-data nonlinear;
-set nonlinear;
-atbmi3=atbmi*atbmi*atbmi; /* easier: atbmi**3 */
-run;
+* data nonlinear;
+* set nonlinear;
+* atbmi3=atbmi*atbmi*atbmi; /* easier: atbmi**3 */
+* run;
 
 /*degree=3*/
+data nonlinear;
+set nonlinear;
+atbmi3=atbmi**3;
+run;
 
+proc genmod data=nonlinear;
+model alhdlaz=atbmi atbmi2 atbmi3 / dist=normal;
+output out=b p=yhat;
+run;
+
+* hdl = 211.7032 - 12.4413*bmi + 0.3139*bmi2 - 0.0027*bmi3
+* bmi3 is NOT statistically significant
+* bmi p = 0.0044
+* bmi2 p = 0.0243
+* bmi3 p = 0.0665
+
+*Plot the cubic polynomial; 
+symbol1 color=black			
+        interpol=none		
+	value=dot;		
+symbol2 color=blue
+	interpol=splines;			/* spline specifies that the interpolation for the plot line use a spline routine*/ 			
+proc gplot data=b;
+plot (alhdlaz yhat)*atbmi/ overlay;
+run;
+quit;
 
 
 
 /*other degrees*/
+* degree 4;
+data nonlinear;
+set nonlinear;
+atbmi4=atbmi**4;
+run;
 
+proc genmod data=nonlinear;
+model alhdlaz=atbmi atbmi2 atbmi3 atbmi4/ dist=normal;
+output out=b p=yhat;
+run;
+
+* hdl = -22.5692 + 18.8408*bmi - 1.2097*bmi2 + 0.0294*bmi3 - 0.0002*bmi4
+* bmi p = 0.3925;
+* bmi2 p = 0.2542;
+* bmi3 p = 0.1849;
+* bmi4 p = 0.1475;
+
+*Plot the grade 4 polynomial; 
+symbol1 color=black			
+        interpol=none		
+	value=dot;		
+symbol2 color=blue
+	interpol=splines;			/* spline specifies that the interpolation for the plot line use a spline routine*/ 			
+proc gplot data=b;
+plot (alhdlaz yhat)*atbmi/ overlay;
+run;
+quit;
 
 
 
@@ -191,17 +262,38 @@ data splineout;
 
 
 /*6d: Plot weighted basis functions*/
+proc sort data=splineout; 
+by atbmi;
+run;
 
-
+proc gplot data = splineout;
+plot (t0 t1 t2 t3 t4)*atbmi/overlay;
+run;
+quit;
 
 
 
 
 /*6e: Calculate prediction by summing up the weighted basis functions*/
+data splineout;
+set splineout;
+pred = t0+t1+t2+t3+t4;
+run;
 
+symbol1 color=black			
+        interpol=none		
+		      value=dot;		
+symbol2 color=blue
+		      interpol=splines
+        width=2;
 
+proc gplot data=splineout;
+plot (alhdlaz pred)*atbmi/ overlay;
+run;
+quit;
 
-
+symbol1;
+symbol2;
 
 
 
@@ -309,3 +401,21 @@ run; quit;
 
 /* However, fit is not very good in this example due to  boundary constraints of SAS defaults 
 -> check help files if and how you can change this */
+
+* like on the slides;
+
+proc transreg data=nonlinear;
+model identity(alhdlaz) = pbspline(atbmi /degree=3 nkontos=10
+lambda=1000 aic)/ SS2;
+output out=pb PREDICTED;
+run;
+
+proc sort data=pb;
+by atbmi;
+run;
+
+proc gplot data=pb;
+plot (alhdlaz Palhdlaz) * atbmi/ overlay;
+run;
+quit;
+
