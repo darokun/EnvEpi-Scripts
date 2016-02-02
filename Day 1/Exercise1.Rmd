@@ -1,0 +1,100 @@
+---
+title: "Exercises on non-linear models"
+authors: "Daloha Rodr&iacute;guez-Molina, Margarethe Woeckel"
+date: "February 1, 2016"
+output: html_document
+---
+
+---
+
+**Authors:**      Daloha Rodr??guez-Molina, Margarethe Woeckel
+
+**Project:**      Advanced Epi 2016
+
+**Program:**      AdvEPI_ex_nonlinear_2015_student.sas
+
+**Created:**      01.02.2016
+
+**Data set(s):**  nonlinear
+
+---
+
+### Start of the Exercise
+```
+libname class "/home/msc1426/Dokumente/EnvEpi-Scripts";
+```
+**1a: Create new class dataset**
+```
+data nonlinear;  
+set class.nonlinear;	
+run;
+```
+
+**1b: Look at the data: What is the number of observations? **     
+
+There are 1200 observations.
+
+---
+
+**2: Scatterplots for `atalter`,`alhdlaz`,`atsysmm`,`atdiamm` and `atbmi`**     
+
+a) `atsysmm` and `atdiamm`:
+```
+proc gplot data=nonlinear;
+plot atdiamm*atsysmm;
+run;
+quit;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plo1.sbp.dbp.png?token=AFS7tjBf1iuscr_DR6uunj3rIostu06lks5WuhiQwA%3D%3D" alt="Plot of Systolic and Diastolic Blood Pressure" style="width: 400px; "/>
+
+b) `alhdlaz` and `atbmi`:
+```
+proc gplot data=nonlinear;
+plot alhdlaz*atbmi;
+run;
+quit;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot2.bmi.hdl.png?token=AFS7tigseGRjP2f4senIwMhFw7fzr8Wpks5WuhxcwA%3D%3D" alt="Plot of BMI and HDL-c" style="width: 400px; "/>
+
+**2b: Scatterplots - alternatives**   
+a) age and systolic blood pressure:  
+```
+ods graphics on;
+proc kde data=nonlinear;
+  bivar atalter atsysmm / /*bwm=.5*/ plots=contour;
+run;
+
+proc kde data=nonlinear;
+  bivar atalter atsysmm / /*bwm=.5*/ plots=surface;
+run;
+
+ods graphics off;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot31.age.sbp.png?token=AFS7tryEVPrnnfqY_HJ_Xs1n-a8XEHFhks5WuhzrwA%3D%3D" alt="Plot of age and Systolic Blood Pressure" style="width: 300px; "/>
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot32.age.sbp.png?token=AFS7ti57vT35v230enMNd0DYSEtZwyh6ks5Wuh0ZwA%3D%3D" alt="Plot of age and Systolic Blood Pressure" style="width: 300px; "/>
+
+
+
+
+b) age and bmi: 
+
+```
+ods graphics on;
+proc kde data=nonlinear;
+  bivar atalter atbmi / /*bwm=.5*/ plots=contour;
+run;
+
+proc kde data=nonlinear;
+  bivar atalter atbmi / /*bwm=.5*/ plots=surface;
+run;
+
+ods graphics off;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot41.age.bmi.png?token=AFS7tsb31uTg5tNBLKkK61Hr2JHMvDZLks5Wuh2YwA%3D%3D" alt="Plot of age and BMI" style="width: 300px; "/>
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot42.age.bmi.png?token=AFS7tgrFbPcJR__njKPEREGTprzAWctAks5Wuh2uwA%3D%3D" alt="Plot of age and BMI" style="width: 300px; "/>
+
+---
+
+**3a: Linear regression for HDL-cholesterol and BMI**
+
+
