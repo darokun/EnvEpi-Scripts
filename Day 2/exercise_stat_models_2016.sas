@@ -7,8 +7,8 @@ Data sets:    mort, mort_cc, escape
 
 * create library "class" *;
 
-LIBNAME class "D:\0_toCopy\Day04_Statistical_Methods\Exercise\data";
-LIBNAME class "D:\SAS_exercise\data";
+*LIBNAME class "D:\0_toCopy\Day04_Statistical_Methods\Exercise\data";
+LIBNAME class "/home/msc1426/Dokumente/EnvEpi-Scripts/Day 2";
 
 /***************************************/
 /*1. CVD mortality - POISSON REGRESSION*/
@@ -18,7 +18,7 @@ LIBNAME class "D:\SAS_exercise\data";
 DATA mort;
 SET class.mort;
 	log_pop=log(pop_augs); /*logarithm of Augsburg population*/
-	trend=trend/1000; /*divide by 1000 for larger effect and std.error estimtes*/
+	trend=trend/1000; /*divide by 1000 for larger effect and std.error estimates*/
 	temp2=M24T_A_L04**2; /*quadratic and cubic term of temperature*/
 	temp3=M24T_A_L04**3;
 RUN;
@@ -32,17 +32,49 @@ RUN;
 
 * Plot of daily cardiovascular mortality during the study period *; 
 PROC GPLOT DATA=mort;
+title "Plot 1 sm=20";
 SYMBOL1 V=POINT C=black;/*symbol for daily dots*/
 SYMBOL2 V=NONE I=sm20 C=red; /*spline interpolation ->smooth curve*/
+	PLOT cardiomort_augst*date=1 cardiomort_augst*date=2/OVERLAY;
+RUN;QUIT;
+
+PROC GPLOT DATA=mort;
+title "Plot 1 sm=05";
+SYMBOL1 V=POINT C=black;/*symbol for daily dots*/
+SYMBOL2 V=NONE I=sm05 C=blue; /*spline interpolation ->smooth curve*/
+	PLOT cardiomort_augst*date=1 cardiomort_augst*date=2/OVERLAY;
+RUN;QUIT;
+
+PROC GPLOT DATA=mort;
+title "Plot 1 sm=99";
+SYMBOL1 V=POINT C=black;/*symbol for daily dots*/
+SYMBOL2 V=NONE I=sm99 C=green; /*spline interpolation ->smooth curve*/
 	PLOT cardiomort_augst*date=1 cardiomort_augst*date=2/OVERLAY;
 RUN;QUIT;
 
 
 * Seasonal variation of mortality in 2000 *;
 PROC GPLOT DATA=mort;
+title "Seasonal variation of mortality in year 2000";
 SYMBOL1 V=dot C=black;
 SYMBOL2 V=NONE I=sm50 C=red; 
 AXIS1 ORDER=('01jan00'd to '01jan01'd by month);
+	PLOT cardiomort_augst*date=1 cardiomort_augst*date=2/OVERLAY HAXIS=axis1;
+RUN;QUIT;
+
+PROC GPLOT DATA=mort;
+title "Seasonal variation of mortality in year 2001";
+SYMBOL1 V=dot C=black;
+SYMBOL2 V=NONE I=sm50 C=red; 
+AXIS1 ORDER=('01jan01'd to '01jan02'd by month);
+	PLOT cardiomort_augst*date=1 cardiomort_augst*date=2/OVERLAY HAXIS=axis1;
+RUN;QUIT;
+
+PROC GPLOT DATA=mort;
+title "Seasonal variation of mortality in year 1990";
+SYMBOL1 V=dot C=black;
+SYMBOL2 V=NONE I=sm50 C=red; 
+AXIS1 ORDER=('01jan90'd to '01jan91'd by month);
 	PLOT cardiomort_augst*date=1 cardiomort_augst*date=2/OVERLAY HAXIS=axis1;
 RUN;QUIT;
 
@@ -50,31 +82,36 @@ RUN;QUIT;
 * Do holidays (HOLIDAY, 1=yes) and weekdays (DOW, 1=Sunday) influence the number of daily mortality cases? Use PROC MEANS *;
 * Cardiovascular mortality by holiday *;
 PROC MEANS DATA=mort MAXDEC=2 MEAN STD MIN MAX ;
+title "Cardiovascular mortality by holiday";
 	VAR cardiomort_augst;
 	CLASS holiday;
 RUN;
 
 * Cardiovascular mortality by day of the week *;
-
-
-
-
+PROC MEANS DATA=mort MAXDEC=2 MEAN STD MIN MAX ;
+title "Cardiovascular mortality by DOW";
+	VAR cardiomort_augst;
+	CLASS dow;
+RUN;
 
 
 * Poisson regression: Effect of PM10 on cardiovascular mortality *;
 PROC GENMOD DATA = mort;
+title "Effect of PM10 on cardiovascular mortality";
 	CLASS  season dow (REF=first)/PARAM=ref;
 	MODEL cardiomort_augst=M24PM10_A_L0 M24T_A_L04 temp2 temp3 M24RH_A_L04 M24BP_A_L04 trend season dow / DIST=poisson LINK=log;
 RUN;
 
 * take overdispersion into account *;
 PROC GENMOD DATA = mort;
+title "Effect of PM10 on cardiovascular mortality w/overdispersion";
 	CLASS  season dow(REF=first)/PARAM=ref;
 	MODEL cardiomort_augst=M24PM10_A_L0 M24T_A_L04 temp2 temp3 M24RH_A_L04 M24BP_A_L04 trend season dow/ DIST=poisson LINK=log SCALE=pearson ;
 RUN;
 
 * take changing population into account *;
 PROC GENMOD DATA = mort;
+title "Effect of PM10 on cardiovascular mortality w/changing population";
 	CLASS  season dow(REF=first)/PARAM=ref;
 	MODEL cardiomort_augst=M24PM10_A_L0 M24T_A_L04 temp2 temp3 M24RH_A_L04 M24BP_A_L04 trend season dow/ DIST=poisson LINK=log SCALE=pearson OFFSET=log_pop;
 	ESTIMATE 'PM10' M24PM10_A_L0 10/EXP; /*calculation of RR, label ('PM10') must be specified
@@ -90,6 +127,43 @@ RUN;
 	%LET i=04;
 	%END;
 		PROC GENMOD DATA = mort;
+			title "Effect of NO2 on CV mortality";
+			CLASS  season dow(REF=first)/PARAM=ref;
+			MODEL cardiomort_augst=M24&poll._A_L&i M24T_A_L04 temp2 temp3 M24RH_A_L04 M24BP_A_L04 trend season dow/ DIST=poisson LINK=log SCALE=pearson OFFSET=log_pop;
+			ESTIMATE "&poll." M24&poll._A_L&i 10/EXP; 
+		RUN;
+	%END;
+%MEND;
+
+%lags (poll=NO2);
+
+* Which lag of NO2 has the strongest effect on cardiovascular mortality? *;
+%MACRO lags (poll=);
+	%DO j=0 %TO 5;
+	%LET i=&j;
+	%IF &j=5 %THEN %DO;
+	%LET i=04;
+	%END;
+		PROC GENMOD DATA = mort;
+			title "Effect of NO2 on CV mortality";
+			CLASS  season dow(REF=first)/PARAM=ref;
+			MODEL cardiomort_augst=M24&poll._A_L&i M24T_A_L04 temp2 temp3 M24RH_A_L04 M24BP_A_L04 trend season dow/ DIST=poisson LINK=log SCALE=pearson OFFSET=log_pop;
+			ESTIMATE "&poll." M24&poll._A_L&i 10/EXP; 
+		RUN;
+	%END;
+%MEND;
+
+%lags (poll=NO2);
+
+* Which lag of NO2 has the strongest effect on cardiovascular mortality? *;
+%MACRO lags (poll=);
+	%DO j=0 %TO 5;
+	%LET i=&j;
+	%IF &j=5 %THEN %DO;
+	%LET i=04;
+	%END;
+		PROC GENMOD DATA = mort;
+			title "Effect of NO2 on CV mortality";
 			CLASS  season dow(REF=first)/PARAM=ref;
 			MODEL cardiomort_augst=M24&poll._A_L&i M24T_A_L04 temp2 temp3 M24RH_A_L04 M24BP_A_L04 trend season dow/ DIST=poisson LINK=log SCALE=pearson OFFSET=log_pop;
 			ESTIMATE "&poll." M24&poll._A_L&i 10/EXP; 
@@ -118,6 +192,7 @@ RUN;
 
 * Cond. log. reg.: Effect of PM10 on cardiovascular mortality *;
 PROC LOGISTIC DATA=mort_cc;
+title "Cond. log. reg.: Effect of PM10 on cardiovascular mortality";
 	STRATA id; /*this statement is only available since SAS version 9*/
 	MODEL cvd(EVENT='1')= M24PM10_Lag0 M24Temp_Lag04 temp2 temp3 M24RH_Lag04 M24BP_Lag04 trend fluepi;
 RUN;
@@ -136,6 +211,7 @@ RUN;
 	%LET i=04;
 	%END;
 		PROC LOGISTIC DATA = mort_cc;
+		title "Which lag of NO2 has the strongest effect on cardiovascular mortality?";
 			STRATA id;
 			MODEL cvd(EVENT='1')= M24&poll._Lag&i. M24Temp_Lag04 temp2 temp3 M24RH_Lag04 M24BP_Lag04 trend fluepi;
 		RUN;
@@ -143,12 +219,31 @@ RUN;
 %MEND;
 
 %lags2 (poll=NO2);
+
 * Explain effects of the covariates *;
+PROC LOGISTIC DATA=mort_cc;
+title "Complete: Cond. log. reg.: Effect of NO2 on cardiovascular mortality";
+	STRATA id; /*this statement is only available since SAS version 9*/
+	MODEL cvd(EVENT='1')= M24PM10_Lag0 M24Temp_Lag04 temp2 temp3 M24RH_Lag04 M24BP_Lag04 trend fluepi;
+RUN;
+
+PROC LOGISTIC DATA=mort_cc;
+title "Lag04 only: Cond. log. reg.: Effect of NO2 on cardiovascular mortality";
+	STRATA id; /*this statement is only available since SAS version 9*/
+	MODEL cvd(EVENT='1')= M24PM10_Lag0 M24Temp_Lag04 temp2 temp3 M24RH_Lag04 M24BP_Lag04 trend fluepi;
+RUN;
+
+
+
 
 
 
 * Rerun the model after exclusion of barometric pressure *;
-
+PROC LOGISTIC DATA=mort_cc;
+title "Complete: Cond. log. reg.: Effect of NO2 on cardiovascular mortality";
+	STRATA id; /*this statement is only available since SAS version 9*/
+	MODEL cvd(EVENT='1')= M24PM10_Lag0 M24Temp_Lag04 temp2 temp3 M24RH_Lag04 M24BP_Lag04 trend fluepi;
+RUN;
 
 
 
@@ -172,7 +267,7 @@ RUN;
 
 
 * Description of the Outcome variables *;
-* How many individuals died during the follow up because of CVD (cvdmord_w6a2)? 
+* How many individuals died during the follow up because of CVD (cvdmort_w6a2)? 
 * How long is the average follow up time (fu_time)? *;
 * Perform the description for the two surveys (study) separately *;
 PROC FREQ DATA=escape;
@@ -192,7 +287,7 @@ PROC LIFETEST DATA=escape PLOTS=(s,ls, lls) CS=plus ES=none ;
 	WHERE study="S3";/*only S3 participants*/
 RUN;
 * What is the probability to survive at least 5371 days for women? *;
-
+*0,9617;
 
 * Further options *;
 PROC LIFETEST DATA=escape CS=none ES=none OUTSURV=surv TIMELIST=(1000,2500,5000) REDUCEOUT;
@@ -200,9 +295,14 @@ PROC LIFETEST DATA=escape CS=none ES=none OUTSURV=surv TIMELIST=(1000,2500,5000)
 RUN;
 
 * What is the probability to survive at least 1000, 2500, and 5000 days? *;
+* 1000 = 0.9952
+  2500 = 0.9857
+  5000 = 0.9579;
 
 * How many persons died/dropped out at this time points? *;
-
+* 1000 n = 41
+  2500 n = 122
+  5000 n = 266;
 
 * Cox regression: effects of covariates and PM10 on mortality *;
 PROC PHREG DATA=escape;
