@@ -1,13 +1,13 @@
 ---
 title: "Exercises on non-linear models"
-authors: "Daloha Rodr&iacute;guez-Molina, Margarethe Woeckel"
 date: "February 1, 2016"
 output: html_document
+authors: Daloha Rodr&iacute;guez-Molina
 ---
 
 ---
 
-**Authors:**      Daloha Rodr??guez-Molina, Margarethe Woeckel
+**Authors:**      Daloha Rodr&iacute;guez-Molina
 
 **Project:**      Advanced Epi 2016
 
@@ -23,31 +23,36 @@ output: html_document
 ```
 libname class "/home/msc1426/Dokumente/EnvEpi-Scripts";
 ```
-**1a: Create new class dataset**
+### Data description
+#### 1a) Create new class dataset. Read in today's dataset "nonlinear":
 ```
 data nonlinear;  
 set class.nonlinear;	
 run;
 ```
 
-**1b: Look at the data: What is the number of observations? **     
+#### 1b) Look at the data: What is the number of observations in the dataset?       
 
 There are 1200 observations.
 
 ---
 
-**2: Scatterplots for `atalter`,`alhdlaz`,`atsysmm`,`atdiamm` and `atbmi`**     
+#### 2a) Look at the data for Age, Systolic Blood Pressure, Diastolic Blood Pressure, HDL cholesterol and BMI. Create scatterplots for some of these variables. How are these variables related with each other? Just describe in words.   
 
-a) `atsysmm` and `atdiamm`:
+**Scatterplots for `atalter`,`alhdlaz`,`atsysmm`,`atdiamm` and `atbmi`**     
+
+* `atsysmm` and `atdiamm`:
 ```
 proc gplot data=nonlinear;
 plot atdiamm*atsysmm;
 run;
 quit;
 ```
-<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plo1.sbp.dbp.png?token=AFS7tjBf1iuscr_DR6uunj3rIostu06lks5WuhiQwA%3D%3D" alt="Plot of Systolic and Diastolic Blood Pressure" style="width: 400px; "/>
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plo1.sbp.dbp.png?token=AFS7tjBf1iuscr_DR6uunj3rIostu06lks5WuhiQwA%3D%3D" alt="Plot of Systolic and Diastolic Blood Pressure" style="width: 400px; "/>     
 
-b) `alhdlaz` and `atbmi`:
+**Description:** There seems to be a direct and positive relationship between Systolic and Diastolic Blood Pressure, which would make sense from the clinical and biological point of view.
+
+* `alhdlaz` and `atbmi`:
 ```
 proc gplot data=nonlinear;
 plot alhdlaz*atbmi;
@@ -56,8 +61,14 @@ quit;
 ```
 <img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot2.bmi.hdl.png?token=AFS7tigseGRjP2f4senIwMhFw7fzr8Wpks5WuhxcwA%3D%3D" alt="Plot of BMI and HDL-c" style="width: 400px; "/>
 
-**2b: Scatterplots - alternatives**   
-a) age and systolic blood pressure:  
+**Description:** There seems to be a negative association between BMI and HDL-c, which describes an L-shaped curve. 
+
+#### 2b: Scatterplots - alternatives.  And what about and alternatively smooth scatter plot? Create some bivariate smooth scatter plot with the variables you already used. When are/aren't they giving more information?    
+
+Smooth scatter plots provide more information than regular scatter plots when exploring the relationship between age and other variables (e.g. systolic blood pressure or bmi). This happens because, unlike regular scatter plots, smooth scatter plots are able to fit a line to the data points that attempts to show the non-random relationship between the variables. In other words, it cleans out the random noise, and shows only a prediction of the dependent variable (e.g. systolic blood pressure or bmi) as a function of the independent variable (e.g. age). These relationships are shown in the following plots:
+
+* age and systolic blood pressure:  
+
 ```
 ods graphics on;
 proc kde data=nonlinear;
@@ -73,10 +84,11 @@ ods graphics off;
 <img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot31.age.sbp.png?token=AFS7tryEVPrnnfqY_HJ_Xs1n-a8XEHFhks5WuhzrwA%3D%3D" alt="Plot of age and Systolic Blood Pressure" style="width: 300px; "/>
 <img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot32.age.sbp.png?token=AFS7ti57vT35v230enMNd0DYSEtZwyh6ks5Wuh0ZwA%3D%3D" alt="Plot of age and Systolic Blood Pressure" style="width: 300px; "/>
 
+**Description:** This density plot shows a slightly positive relationship between age and systolic blood pressure: the older the subject, the higher the blood pressure.
 
 
 
-b) age and bmi: 
+* age and bmi: 
 
 ```
 ods graphics on;
@@ -93,8 +105,420 @@ ods graphics off;
 <img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot41.age.bmi.png?token=AFS7tsb31uTg5tNBLKkK61Hr2JHMvDZLks5Wuh2YwA%3D%3D" alt="Plot of age and BMI" style="width: 300px; "/>
 <img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot42.age.bmi.png?token=AFS7tgrFbPcJR__njKPEREGTprzAWctAks5Wuh2uwA%3D%3D" alt="Plot of age and BMI" style="width: 300px; "/>
 
+**Description:** According to the density plot, there seems to be no relationship whatsoever between age and BMI.      
+
 ---
 
-**3a: Linear regression for HDL-cholesterol and BMI**
+### Linear regression model
+#### 3a: Linear regression for HDL-cholesterol and BMI. Perform a linear regression using HDL cholesterol as outcome and BMI as independent variables.      
+
+```
+proc genmod data=nonlinear;
+model alhdlaz=atbmi / dist=normal; * dist=normal => normal distribution;
+output out=b p=yhat;  /*out= defines the output data set, p (predicted) defines the variable name for the predicted values;*/
+run;
+```
+
+Parameter | Estimate | Standard Error | Lower 95% CI | Upper 95% CI | Wald Chi-square | p-value 
+----------|----------|----------------|--------------|--------------|-----------------|------
+Intercept | 81.2767  | 3.1138         | 75.1737      | 87.3797      | 681.31          | <0.0001
+atbmi     |  -1.0240 | 0.1107         |  -1.2409     | -0.8072      | 85.65           | <0.0001
+
+**Description:** This procedure returns a value of 81.2767 for the intercept, and -1.024 for the coefficient of BMI, and both estimated values are statistically significant (p<0.0001). These values mean that HDL-c decreases by 1.024 per each unit increase of BMI.  
+
+An alternative code for getting these results in SAS is:
+
+```
+proc reg data=nonlinear;
+model alhdlaz=atbmi;
+output out=b p=yhat;  
+run;
+quit;
+```        
+#### 3b: Plot a scatterplot for HDL-cholesterol and BMI, add regression line, and interpret the results:
+```
+symbol1 color=black  		/* symbol is a global statement that defines the */
+        interpol=none		/* characteristics of symbols that display the data plotted */
+		value=dot;			/* by proc gplot */
+symbol2 color=blue			/* value speficies a plot symbol for the data points */
+        interpol=join;		/* color specifies the color for the symbols*/
+							/* interpol specifies whether the symbols are interpolated or not */
+
+proc gplot data=b;
+plot (alhdlaz yhat)*atbmi/ overlay; 	/* overlay places all the plots that are generated by */
+run;										/* the PLOT statement on one set of axes */
+quit;
+```
+
+```
+symbol1;  /* resets symbol1 to default SAS characteristics  */
+symbol2;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot5.bmi.hdl.scatterplot.line.png" alt="Plot of BMI and HDL-c" style="width: 400px; "/>
+
+**Description:** The scatter plot and the regression line confirm the prior observation that there is an inverse relationship between BMI and HDL-c.
+
+---       
+
+### Polynomial regression models
+#### 4a) Now perform a regression with a quadratic polynomial of BMI by using the squared variable of bmi2=atbmi*atbmi
+
+```
+data nonlinear;
+set nonlinear; atbmi2=atbmi*atbmi; run;
+proc genmod data=nonlinear;
+model alhdlaz=atbmi atbmi2 / dist=normal; output out=b p=yhat;
+run;
+```
+
+Parameter | Estimate | Standard Error | Lower 95% CI | Upper 95% CI | Wald Chi-square | p-value 
+----------|----------|----------------|--------------|--------------|-----------------|------
+Intercept | 132.8245 | 12.5047        | 108.3158     | 157.3333     | 112.83          | <0.0001
+atbmi     | -4.5676  | 0.8401         | -6.2142      | -2.9209      | 29.56           | <0.0001
+atbmi2    | 0.0594   | 0.0140         | 0.0320       | 0.0868       | 18.10           | <0.0001
+
+#### 4b) Plot the quadratic polynomial. Does the estimated function approximate the data well?
+```
+symbol1 color=black  		
+        interpol=none		
+		value=dot;		
+symbol2 color=blue
+		interpol=splines;			/* spline specifies that the interpolation for the plot line use a spline routine*/ 			
+proc gplot data=b;
+plot (alhdlaz yhat)*atbmi/ overlay;
+run;
+quit;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot6.bmi.hdl.quadratic.png" alt="Plot of BMI and HDL-c" style="width: 400px; "/>
+
+**Description:** It seems like the quadratic function approximates the distribution of the data better than the linear function, although it could still be improved, especially on the extremes.     
+
+#### *4c: perform regression with different degrees for the polynomial;
+##### /*First add polynomial terms to your dataset, e.g. for degree=3  */      
+**Degree 3**
+```
+/*degree=3*/
+data nonlinear;
+set nonlinear;
+atbmi3=atbmi**3;
+run;
+
+proc genmod data=nonlinear;
+model alhdlaz=atbmi atbmi2 atbmi3 / dist=normal;
+output out=b p=yhat;
+run;
+```
+
+Parameter | Estimate | Standard Error | Lower 95% CI | Upper 95% CI | Wald Chi-square | p-value 
+----------|----------|----------------|--------------|--------------|-----------------|------
+Intercept | 211.7032 | 44.7622        | 123.9707     | 299.4355     | 22.37           | <0.0001
+atbmi     | -12.4413 | 4.3721         | -21.0105     | -3.8722      | 8.10            | 0.0044
+atbmi2    | 0.3139   | 0.1393         | 0.0407       | 0.5870       | 5.07            | 0.0243
+atbmi3    | -0.0027  | 0.0014         | -0.0055      | 0.0002       | 3.37            | 0.0665
+
+#### Plot the cubic polynomial:
+```
+symbol1 color=black  		
+        interpol=none		
+	value=dot;		
+symbol2 color=blue
+	interpol=splines;			/* spline specifies that the interpolation for the plot line use a spline routine*/ 			
+proc gplot data=b;
+plot (alhdlaz yhat)*atbmi/ overlay;
+run;
+quit;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot7.cubic.png" alt="cubic" style="width: 400px; "/>
+
+**Description:** This plot seems to fit the values better, especially on the right hand extreme. However, the coefficient for the cubic term is not statistically significant.     
+
+
+**Degree 4**
+```
+/*degree=4*/
+data nonlinear;
+set nonlinear;
+atbmi4=atbmi**4;
+run;
+
+proc genmod data=nonlinear;
+model alhdlaz=atbmi atbmi2 atbmi3 atbmi4/ dist=normal;
+output out=b p=yhat;
+run;
+```
+
+Parameter | Estimate | Standard Error | Lower 95% CI | Upper 95% CI | Wald Chi-square | p-value 
+----------|----------|----------------|--------------|--------------|-----------------|------
+Intercept | -22.5692 | 167.7991       | -351.449     | 306.3109     | 0.02            | 0.8930
+atbmi     | 18.8408  | 22.0329        | -24.3429     | 62.0245      | 0.73            | 0.3925
+atbmi2    | -1.2097  | 1.0610         | -3.2891      | 0.8697       | 1.30            | 0.2542
+atbmi3    | 0.0294   | 0.0222         | -0.0141      | 0.0728       | 1.76            | 0.1849
+atbmi4    | -0.0002  | 0.0002         | -0.0006      | 0.0001       | 2.10            | 0.1475
+
+#### Plot the grade 4 polynomial:
+```
+symbol1 color=black  		
+        interpol=none		
+	value=dot;		
+symbol2 color=blue
+	interpol=splines;			/* spline specifies that the interpolation for the plot line use a spline routine*/ 			
+proc gplot data=b;
+plot (alhdlaz yhat)*atbmi/ overlay;
+run;
+quit;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot8.degree4.png" style="width: 400px; "/>
+
+**Description:** This plot does not seem to fit the data so well, and none of the coefficients are statistically significant.
+
+---        
+
+### Picewise linear regression
+#### 5a) Perform a piecewise linear regression using HDL cholesterol as outcome and BMI as independent variables. Define your knot at a BMI value of 30.
+```
+data nonlinear;
+set nonlinear;
+if atbmi<30 then bmic=0; else bmic=1;
+bmidiff=(atbmi-30)*bmic;
+run;
+
+proc genmod data=nonlinear;
+model alhdlaz=atbmi bmidiff/ dist=normal;
+output out=b p=yhat;
+run;
+quit;
+```
+
+Parameter | Estimate | Standard Error | Lower 95% CI | Upper 95% CI | Wald Chi-square | p-value 
+----------|----------|----------------|--------------|--------------|-----------------|------
+Intercept | 99.3382  | 4.8652         | 89.8026      | 108.8739     | 416.90          | <0.0001
+atbmi     | -1.7226  | 0.1822         | -2.0796      | -1.3655      | 89.40           | <0.0001
+bmidiff   | 1.6546   | 0.3447         | 0.9790       | 2.3301       | 23.04           | <0.0001
+
+#### 5b: Plot results
+```
+symbol1 color=black  		
+        interpol=none		
+		value=dot;		
+symbol2 color=blue
+		interpol=splines width=2;
+proc gplot data=b;
+plot alhdlaz*atbmi yhat*atbmi/ overlay;
+run;
+quit;
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot9.piecewiselinearreg.png" style="width: 400px; "/>
+```
+     
+---     
+     
+     
+### B-splines
+#### 6a) Perform a regression using HDL cholesterol as outcome and BMI as independent variables. Use a B-Spline basis with degree 3 for the non-linear function and define your knot at a BMI value of 30.
+```
+proc transreg data = nonlinear design;
+  model identity(alhdlaz) = bspline(atbmi/degree=3  knots=30)/ SS2;
+	output out=splineout;
+	run;
+```
+
+Variable         | Coefficient | p-value
+-----------------|-------------|--------
+B.spline.atbmi_0 | 71.8235     | <0.0001
+B.spline.atbmi_1 | 65.9769     | <0.0001
+B.spline.atbmi_2 | 32.0049     | <0.0001
+B.spline.atbmi_3 | 59.1401     | <0.0001
+B.spline.atbmi_4 | 35.7446     | <0.0001
+
+#### 6b: Plot the basis functions
+```
+proc sort data=splineout; by atbmi; run; /*Needs to be sorted by x if dots should be joined - try out without the sorting and withdots instead of join*/
+
+goptions reset=all;
+goptions colors=(darkred orange darkgreen black blue) ;
+symbol interpol=join width=2 repeat=5  ;		
+
+proc gplot data=splineout;
+plot (Intercept -- atbmi_4)*atbmi/ overlay;
+run;
+quit;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot10.bsplines.sorted.png" style="width: 400px; "/>     
+
+#### 6c) Multiply basis functions with estimated coefficients:
+```
+data splineout;
+  	set splineout;
+		t0 = 71.8235080*atbmi_0;
+		t1 = 65.9769697*atbmi_1;
+		t2 = 32.0049391*atbmi_2;
+		t3 = 59.1401642*atbmi_3;
+		t4 = 35.7445817*atbmi_4;
+		run;
+```     
+
+#### 6d) Plot weighted basis functions:
+```
+proc sort data=splineout; 
+by atbmi;
+run;
+
+proc gplot data = splineout;
+plot (t0 t1 t2 t3 t4)*atbmi/overlay;
+run;
+quit;
+```
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot11.bsplines.weighted.png" style="width: 400px; "/>       
+
+#### 6e) Create the non-linear function by combining the basis functions and plot the non-linear function.
+```
+data splineout;
+set splineout;
+pred = t0+t1+t2+t3+t4;
+run;
+
+symbol1 color=black  		
+        interpol=none		
+		      value=dot;		
+symbol2 color=blue
+		      interpol=splines
+        width=2;
+
+proc gplot data=splineout;
+plot (alhdlaz pred)*atbmi/ overlay;
+run;
+quit;
+
+symbol1;
+symbol2;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot12.bsplines.weighted.png" style="width: 400px; "/>  
+
+**Description:** The fitting of the data gets better and smoother to describe the non-linear relationship.
+
+---
+
+### Bin smoother.
+#### 7a) Create boxplots with HDL cholesterol as outcome and BMI. Divide the range of the variable BMI into 3 sub-intervals. Describe the results.
+```
+data nonlinear;
+set nonlinear;
+if .< atbmi<25 then bmicat=22;
+if atbmi ge 25 and atbmi<30 then bmicat=27.5;
+if atbmi ge 30 then bmicat=33;
+if atbmi=.  then bmicat=10;
+run;
+
+/*Plot boxplots*/
+symbol1 color=black  		
+        interpol=none		
+		value=dot;
+symbol2 color=blue
+		interpol=BOX width=2;
+proc gplot data=nonlinear;
+plot alhdlaz*atbmi alhdlaz*bmicat/overlay href=25 30 LHREF=3; 
+run;
+quit;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot13.binsmoother.boxplots.png" style="width: 400px; "/>      
+
+**Description:** The plot shows that the medians of each section decrease progressively from the second box plot to the last one.
+
+#### 7b) Plot bin means using the same 3 sub-intervals as bins.
+```
+proc sort data=nonlinear;
+by bmicat;
+run;
+
+proc means data=nonlinear;
+by bmicat;
+var alhdlaz;
+output out=b mean=m;
+run;
+
+data nonlinear;
+set nonlinear;
+if bmicat=22 then binmean= 59.5391003;
+if bmicat=27.5 then binmean= 51.8375000;
+if bmicat=33 then binmean= 48.0125000;
+run;
+
+
+symbol1 color=black  		
+        interpol=none		
+		value=dot;
+symbol2 color=blue
+		interpol=stepcj 
+		value=star;
+proc gplot data=nonlinear;
+plot alhdlaz*atbmi binmean*bmicat/overlay href=25 30 LHREF=3;
+run;
+quit;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot14.binsmoother.stepfunction.png" style="width: 400px; "/>      
+
+**Description:** The step function shows the way the median decreases across subsections of the data.
+
+---     
+     
+### BONUS: 8) Penalized B-splines:
+#### 8a) Create a number of penalized B-splines changing the relevant parameters and explain the role they play in the final function.
+
+**With 100 knots, and no lambda prespecified:**
+```
+proc transreg data = nonlinear ; 
+model identity(alhdlaz) = pbspline(atbmi /degree=3 nknots=100 aic)/ SS2; 
+output out=pb PREDICTED;
+run;
+
+symbol1 color=black  		
+        interpol=none		
+		value=dot;
+symbol2 color=blue
+		interpol=join width =2;
+
+proc gplot data=pb;
+plot (alhdlaz Palhdlaz )*atbmi/ overlay; 	
+run; quit;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot15.penalizedbsplines.100knots.nolambda.png" style="width: 400px; "/>      
+
+**Description:** However, the fit is not very good in this example due to boundary constraints of SAS defaults. Especially on the extremes.     
+
+**With 10 knots and lambda=1000:**
+```
+
+proc transreg data=nonlinear;
+model identity(alhdlaz) = pbspline(atbmi /degree=3 nkontos=10
+lambda=1000 aic)/ SS2;
+output out=pb PREDICTED;
+run;
+
+proc sort data=pb;
+by atbmi;
+run;
+
+proc gplot data=pb;
+plot (alhdlaz Palhdlaz) * atbmi/ overlay;
+run;
+quit;
+```
+
+<img src="https://raw.githubusercontent.com/darokun/EnvEpi-Scripts/master/Day%201/plot16.penalizedbsplines.10knots.lambda1000.png" style="width: 400px; "/>  
+
+**Description:** The curve describes a much better shape that fits the data very well. There is still room for improvement, though.
+
+---      
+END OF SCRIPT
+    
+
+
 
 
